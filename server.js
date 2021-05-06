@@ -10,7 +10,6 @@ var socketIO = require('socket.io');
 var io = socketIO(server);
 
 const connections = new Set();
-let connectCounter = 0;
 
 app.use(express.static(__dirname + '/node_modules'));
 app.use('/static', express.static(__dirname + '/static'));
