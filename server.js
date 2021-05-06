@@ -65,6 +65,6 @@ io.on('connection', function (client) {
 
 const PORT = process.env.PORT || 9000;
 
-server.listen(4200, function(){
+server.listen(PORT, function(){
     console.log('\x1b[32m%s\x1b[0m', `Server is listening on PORT: ${PORT}`);
 });
