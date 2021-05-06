@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Who's the bot?</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 bg-white chat-area">
+                <div class="chat-message">
+                    <ul id="chat" class="chat">
+
+                    </ul>
+                </div>
+                <div class="chat-box bg-white">
+                    <form>
+                        <div class="input-group">
+                            <input id='chat_input' class="form-control border no-shadow no-rounded"
+                                placeholder="Type your message here">
+                            <span class="input-group-btn">
+                                <button class="btn btn-success no-rounded" type="submit">Send</button>
+                            </span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/jquery/dist/jquery.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        var username = prompt("Welcome! What's your name?");
+        var socket = io.connect('http://localhost:4200');
+
+        function appendMessage(data) {
+            var position = data.me ? 'right' : 'left';
+            var template = `
+            <li class="${position} clearfix">
+                <span class="chat-img pull-${position}">
+                    <img src="/static/images/user.png" alt="User Avatar">
+                </span>
+                <div class="chat-body clearfix">
+                    <div class="header">
+                        <strong class="primary-font">${data.username}</strong>
+                        <small class="pull-right text-muted">
+                            <i class="fa fa-clock-o"></i>
+                            ${data.time}
+                        </small>
+                    </div>
+                    <p>${data.message}</p>
+                </div>
+            </li>
+            `;
+            $('#chat').append(template);
+        }
+
+        function newUserTemplate(username) {
+            var template = `
+                <p class="text-center text-muted">
+                    <b>${username}</b> has joined the chat!
+                </p>
+            `;
+            $('#chat').append(template);
+        }
+
+        function userLeftTemplate(username) {
+            var template = `
+                <p class="text-center text-muted">
+                    <b>${username}</b> has left the chat!
+                </p>
+            `;
+            $('#chat').append(template);
+        }
+
+        function appendCount(count) {
+            var countMessage = count === 1 ? "no other users" : `${count} users`;
+            var template = `
+            <p class="text-center text-muted">
+                There are currently ${countMessage} in this chat.
+            </p>
+            `;
+            $('#chat').append(template);
+        }
+
+        socket.on('connect', function (data) {
+            socket.emit('join', username);
+        });
+
+        socket.on('broad', function (data) {
+            appendMessage(data);
+        });
+
+        socket.on('new_user', function (username) {
+            newUserTemplate(username);
+        });
+
+        socket.on('user_left', function (username) {
+            userLeftTemplate(username);
+        });
+
+        socket.on('user_count', function (count) {
+            appendCount(count);
+        });
+
+        $('form').submit(function (e) {
+            e.preventDefault();
+            var message = $('#chat_input').val();
+            socket.emit('messages', {
+                username,
+                message
+            });
+            $('#chat_input').val("");
+        });
+    </script>
+</body>
+
+</html>
